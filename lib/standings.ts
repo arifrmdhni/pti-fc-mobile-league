@@ -1,6 +1,6 @@
 // Standings aggregation. Every leg counts as its own match, and a leg can be a
-// walkover: one player missing (opponent wins 3-0, both get a -3 penalty for the
-// player who forfeited) or both missing (0-0, both get -3, no winner).
+// walkover: one player missing (opponent wins 3-0; the forfeiting player's
+// goal difference is -3) or both missing (0-0, no winner).
 
 export type FormResult = 'W' | 'D' | 'L'
 export type Walkover = 'home' | 'away' | 'both'
@@ -36,9 +36,9 @@ export function emptyStanding(): Standing {
   return { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, cs: 0, wo: 0, form: [] }
 }
 
-/** Points: win 3, draw 1, loss 0, minus 3 for every forfeited leg. */
+/** Points: win 3, draw 1, loss 0. A walkover does not change points. */
 export function pointsFor(standing: Pick<Standing, 'w' | 'd' | 'wo'>): number {
-  return standing.w * 3 + standing.d - standing.wo * 3
+  return standing.w * 3 + standing.d
 }
 
 /** Score shown for a leg: derived from the walkover flag, or the stored score. */
