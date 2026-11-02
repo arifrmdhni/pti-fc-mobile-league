@@ -53,7 +53,7 @@ export async function GET() {
       ga: standing?.ga ?? 0,
       cs: standing?.cs ?? 0,
       wo: standing?.wo ?? 0,
-      form: standing?.form.slice(-5) ?? [],
+      form: standing?.form ?? [],
     }
   })
 
