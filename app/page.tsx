@@ -20,7 +20,7 @@ function status(f: Fixture) { if (f.leg1 && f.leg2) return 'Completed'; if (f.le
 const fetcher = (url: string) => fetch(url).then((response) => response.json())
 
 export default function Home() {
-  const { data, error, isLoading } = useSWR<{ players: Player[]; fixtures: Fixture[] }>('/api/league', fetcher)
+  const { data, error, isLoading, mutate } = useSWR<{ players: Player[]; fixtures: Fixture[] }>('/api/league', fetcher)
   const livePlayers = data?.players ?? []
   const liveFixtures = data?.fixtures ?? []
   const [tab, setTab] = useState('Standings')
@@ -57,7 +57,7 @@ export default function Home() {
   const filteredPlayers = livePlayers.filter(p => `${p.name} ${p.dept}`.toLowerCase().includes(search.toLowerCase()))
   const weekFixtures = activeFixtures.filter(f => f.week === week && (playerFilter === 'all' || f.home === Number(playerFilter) || f.away === Number(playerFilter)))
   const standings = useMemo(() => [...filteredPlayers].sort((a,b) => pointsFor(b)-pointsFor(a) || (b.gf-b.ga)-(a.gf-a.ga) || b.gf-a.gf), [filteredPlayers])
-  const saveScore = async (id: number) => { const f = activeFixtures.find(x => x.id === id); if (!f) return; const get = (key: string) => Number(scores[`${id}-${key}`] ?? 0); const wo1 = (scores[`${id}-w1`] ?? f.leg1Wo ?? '') as '' | 'home' | 'away' | 'both'; const wo2 = (scores[`${id}-w2`] ?? f.leg2Wo ?? '') as '' | 'home' | 'away' | 'both'; const leg1: [number, number] = wo1 ? (wo1 === 'home' ? [0, 3] : wo1 === 'away' ? [3, 0] : [0, 0]) : [get('h1'), get('a1')]; const leg2: [number, number] = wo2 ? (wo2 === 'home' ? [0, 3] : wo2 === 'away' ? [3, 0] : [0, 0]) : [get('h2'), get('a2')]; await fetch('/api/league', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, leg1Home: wo1 ? null : leg1[0], leg1Away: wo1 ? null : leg1[1], leg2Home: wo2 ? null : leg2[0], leg2Away: wo2 ? null : leg2[1], leg1Wo: wo1 || null, leg2Wo: wo2 || null }) }); setFixtureData(data => (data ?? activeFixtures).map(x => x.id === id ? { ...x, leg1, leg2, leg1Wo: wo1 || null, leg2Wo: wo2 || null } : x)); setEditing(null) }
+  const saveScore = async (id: number) => { const f = activeFixtures.find(x => x.id === id); if (!f) return; const get = (key: string, fallback: number | undefined) => Number(scores[`${id}-${key}`] ?? fallback ?? 0); const wo1 = (scores[`${id}-w1`] ?? f.leg1Wo ?? '') as '' | 'home' | 'away' | 'both'; const wo2 = (scores[`${id}-w2`] ?? f.leg2Wo ?? '') as '' | 'home' | 'away' | 'both'; const leg1: [number, number] = wo1 ? (wo1 === 'home' ? [0, 3] : wo1 === 'away' ? [3, 0] : [0, 0]) : [get('h1', f.leg1?.[0]), get('a1', f.leg1?.[1])]; const leg2: [number, number] = wo2 ? (wo2 === 'home' ? [0, 3] : wo2 === 'away' ? [3, 0] : [0, 0]) : [get('h2', f.leg2?.[0]), get('a2', f.leg2?.[1])]; const response = await fetch('/api/league', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, leg1Home: wo1 ? null : leg1[0], leg1Away: wo1 ? null : leg1[1], leg2Home: wo2 ? null : leg2[0], leg2Away: wo2 ? null : leg2[1], leg1Wo: wo1 || null, leg2Wo: wo2 || null }) }); if (!response.ok) return; await mutate(); setScores(current => Object.fromEntries(Object.entries(current).filter(([key]) => !key.startsWith(`${id}-`)))); setEditing(null) }
   const completedMatches = activeFixtures.filter(f => f.leg1 && f.leg2).length
   const goalsScored = activeFixtures.reduce((total, f) => total + scoreTotal(f, 0) + scoreTotal(f, 1), 0)
   const hasResults = standings.some(p => p.p > 0)
