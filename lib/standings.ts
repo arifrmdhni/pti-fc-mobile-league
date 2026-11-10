@@ -18,6 +18,7 @@ export type Standing = {
 }
 
 export type MatchForStandings = {
+  matchday?: number | null
   homePlayerId: number
   awayPlayerId: number
   leg1Home: number | null
@@ -131,7 +132,11 @@ export function aggregateStandings(matches: MatchForStandings[]): Map<number, St
     return standing
   }
 
-  for (const match of matches) {
+  const orderedMatches = [...matches].sort(
+    (a, b) => (a.matchday ?? Number.MAX_SAFE_INTEGER) - (b.matchday ?? Number.MAX_SAFE_INTEGER),
+  )
+
+  for (const match of orderedMatches) {
     applyLeg(
       standingFor,
       match.homePlayerId,
