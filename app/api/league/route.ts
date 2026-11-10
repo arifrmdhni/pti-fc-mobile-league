@@ -7,6 +7,8 @@ import { isMatchdayUnlocked, matchdayUnlockAt } from '@/lib/schedule'
 import { aggregateStandings, effectiveLeg, normalizeWalkover } from '@/lib/standings'
 
 // Club crests shown instead of initials. Keys must match league_players.name exactly.
+export const dynamic = 'force-dynamic'
+
 const CLUB_LOGOS: Record<string, string> = {
   QenRazer: '/teams/inter.png',
   Baponza: '/teams/blackburn.png',
