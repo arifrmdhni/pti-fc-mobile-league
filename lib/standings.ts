@@ -18,6 +18,7 @@ export type Standing = {
 }
 
 export type MatchForStandings = {
+  id?: number | null
   matchday?: number | null
   homePlayerId: number
   awayPlayerId: number
@@ -133,7 +134,9 @@ export function aggregateStandings(matches: MatchForStandings[]): Map<number, St
   }
 
   const orderedMatches = [...matches].sort(
-    (a, b) => (a.matchday ?? Number.MAX_SAFE_INTEGER) - (b.matchday ?? Number.MAX_SAFE_INTEGER),
+    (a, b) =>
+      (a.matchday ?? Number.MAX_SAFE_INTEGER) - (b.matchday ?? Number.MAX_SAFE_INTEGER) ||
+      (a.id ?? Number.MAX_SAFE_INTEGER) - (b.id ?? Number.MAX_SAFE_INTEGER),
   )
 
   for (const match of orderedMatches) {
